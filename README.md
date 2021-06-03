@@ -7,14 +7,14 @@ Overview
 
 Usage
 --------
-The `master` branch for this driver functions on ROS Melodic, if you don't know how to install , you can reffer to http://wiki.ros.org/melodic/Installation/Ubuntu;
+The `master` branch for this driver functions on ROS Melodic, if you don't know how to install , you can reffer to http://wiki.ros.org/melodic/Installation/Ubuntu;   
 
----Packages
------'rtk_msg'
-     rtk_msg contants three msgs, rtkmsg_gnss、rtkmsg_imu、rtkmsg_ins, each supports log Aceinna-RTK GNSS/IMU/INS message.
------'ros_rtk'
-     ros_rtk is the ros driver for Aceinna-RTK, it will process GNSS/IMU/INS message received form Aceinna-RTK by serial.
-     log the message to ROS by Rostopic.
+---Packages   
+-----'rtk_msg'   
+     rtk_msg contants three msgs, rtkmsg_gnss、rtkmsg_imu、rtkmsg_ins, each supports log Aceinna-RTK GNSS/IMU/INS message.   
+-----'ros_rtk'   
+     ros_rtk is the ros driver for Aceinna-RTK, it will process GNSS/IMU/INS message received form Aceinna-RTK by serial.   
+     log the message to ROS by Rostopic.   
 
 ---How to use
 
