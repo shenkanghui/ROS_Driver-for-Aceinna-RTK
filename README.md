@@ -18,9 +18,9 @@ The `master` branch for this driver functions on ROS Melodic, if you don't know 
 
 ---How to use
 
-cd ~/catkin_ws                    -----into your ros workspace 
-cp ros_rtk rtk_msg ./src          -----copy folders ros_rtk rtk_msg into folder src,which is under your ros workspace 
-catkin_make                       -----build 
-roslaunch ros_rtk run.launch      -----launch node ros_rtk , you check node name in ros_rtk/launch/run.launch 
-rostopic list                     -----list topics, you can see  /rtk/topic_rtk_gnss  /rtk/topic_rtk_ins /rtk/topic_rtk_imu 
-rostopic echo /rtk/topic_rtk_xxx  -----echo message for IMU/GNSS/INS 
+*cd ~/catkin_ws                    -----into your ros workspace 
+*cp ros_rtk rtk_msg ./src          -----copy folders ros_rtk rtk_msg into folder src,which is under your ros workspace 
+*catkin_make                       -----build 
+*roslaunch ros_rtk run.launch      -----launch node ros_rtk , you check node name in ros_rtk/launch/run.launch 
+*rostopic list                     -----list topics, you can see  /rtk/topic_rtk_gnss  /rtk/topic_rtk_ins /rtk/topic_rtk_imu 
+*rostopic echo /rtk/topic_rtk_xxx  -----echo message for IMU/GNSS/INS 
