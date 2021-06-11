@@ -28,11 +28,11 @@ roslaunch ros_rtk run.launch      -----launch node ros_rtk , you check node name
 rostopic list                     -----list topics, you can see  /rtk/topic_rtk_gnss  /rtk/topic_rtk_ins /rtk/topic_rtk_imu    
 rostopic echo /rtk/topic_rtk_xxx  -----echo message for IMU/GNSS/INS
 
----Notice!!!
+---Notice!!!   
 This driver includes support for serial port and Ethernet. The messages output by the two ports are the same. It is recommended to use only one.   
 To select an output, you only need to select which thread to create at line 122 of /ros_rtk/src/driver/driver.cpp.    
 
-When you choose the Ethernet output method, you need to complete the following two things:
+When you choose the Ethernet output method, you need to complete the following two things:   
 1) Modify line 24 of driver.cpp according to the IP of your ROS system
 2) Modify the OpenRTK lower computer code, cancel NetBios to obtain the host IP, change it to static IP, and ensure that the IP and the ROS system IP are in the same network segment. 
 
