@@ -22,6 +22,7 @@ Usage
 ### Prerequisites
 
 - PC with Ubuntu 18.04
+- python3
 - Install ROS Melodic, please refer to http://wiki.ros.org/melodic/Installation/Ubuntu
 - OpenRTK330LI EVK
 
@@ -45,7 +46,7 @@ The following are steps to build the ROS driver from source code in your local d
 
 **Note**:   This driver includes support for serial port and Ethernet. The messages output by the two ports are the same. It is recommended to use only one.   To select an output, you only need to select which thread to create at line 122 of /ros_rtk/src/driver/driver.cpp.    
 
-When you choose the Ethernet output method, you need first to run "netbios.py" to let openrtk know your IP. When print ".........   true " ,it shows openrtk has got your ip, you can do the following operation.  The "netbios.py" is in openrtk floder.
+When you choose the Ethernet output method, you need first to run "netbios.py" to let openrtk know your IP. When print ".........   true " ,it shows openrtk has got your ip, you can do the following operation.  The "netbios.py" is in openrtk floder and you should run it in python3.
 
 
 ### Operation
