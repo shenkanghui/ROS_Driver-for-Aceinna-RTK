@@ -16,15 +16,39 @@ const float r2d = 180/3.14159265;
 #define     UART_BYTESIZE       8
 #define     UART_STOPBIT        (1)                     /**1:One Bit; 2:Two Bit; 1.5:One Point Five**/
 
+/******NetBios Addr and Port******/
+#define     NETBIOS_BROADCAST_ADDR  "192.168.20.255"
+#define     NETBIOS_OADCAST_PORT    137 
+
+#define     LOCAL_PORT              2204                        //
+#define     LOCAL_IP_ADDRESS        "192.168.20.203"            //here ,it is your ROS IP ,you should change it
+#define     PACKAGE_TYPE_IDX        2
+#define     PAYLOAD_LEN_IDX         4
+#define     MAX_FRAME_LIMIT         256  // assume max len of frame is smaller than MAX_FRAME_LIMIT.
+
+const uint8_t HEADER[2] = {0X55, 0X55};
+const uint8_t HandStr[] = {"hello pc i'm openrtk_data"};
+const uint8_t Handbk[] = {"i am pc\r\n"};
+
 RTKDriver::RTKDriver(ros::NodeHandle nh)
     : m_nh(nh)
 {
     cout << "RTKDriver:RTKDriver()" << endl;
     m_pserial = nullptr;
-
     /* You need to change PortID and Baudrate, others use default*/
     m_rtk.m_port = string(UART_PORT_ID);
     m_rtk.m_baud = UART_BAUDRATE;
+
+    /*Eth init*/
+    sockstrlen = sizeof(struct sockaddr_in); 
+    sock_Cli = -1;
+    /*******server Addr Init********/   
+    sock_Ser = socket(AF_INET, SOCK_STREAM, 0);   
+    memset(&addr_server, 0, sizeof(addr_server));   
+    memset(&addr_sensor, 0, sizeof(addr_sensor));
+    addr_server.sin_family = AF_INET;    
+    addr_server.sin_addr.s_addr = inet_addr(LOCAL_IP_ADDRESS); 
+    addr_server.sin_port = htons(LOCAL_PORT); 
 
     ROS_INFO("device: %s", m_rtk.m_port.c_str());
     ROS_INFO("baud: %d", m_rtk.m_baud);
@@ -41,6 +65,8 @@ RTKDriver::~RTKDriver()
 
 void RTKDriver::Start()
 {
+    int8_t hostname[20];
+    uint8_t cnt = 0;
     // Set and open serial port.
     m_pserial = new serial::Serial(m_rtk.m_port, m_rtk.m_baud, serial::Timeout::simpleTimeout(10));
 
@@ -51,11 +77,50 @@ void RTKDriver::Start()
         m_pserial->open();
     }
     ROS_INFO("Device is opened successfully. [%s:%d]", m_rtk.m_port.c_str(), m_rtk.m_baud);
-        
-    m_mx_exit.lock();
-    m_bexit = false;
-    m_mx_exit.unlock();
-    m_get_data_thread = std::thread(&RTKDriver::ThreadGetData, this);
+
+    /*Start TCP Server Init*/
+    while((bind(sock_Ser,(struct sockaddr *)&addr_server,sockstrlen) < 0)           /*try to bind at most 10s*/
+        && (cnt < 10))
+    {
+        cout << "bind server addr error" << endl; 
+        usleep(1000); // 1 ms   
+        cnt++;
+    }
+
+    cnt = 0;
+    while((listen(sock_Ser, 30) < 0) && (cnt < 10))
+    {
+        cout << "listen server  error" << endl;
+        usleep(1000); // 1 ms
+        cnt++;
+    }
+
+    cnt = 0;
+    while((sock_Cli < 0) && (cnt < 10))
+    {
+        sock_Cli = accept(sock_Ser,(struct sockaddr *)&addr_sensor,&sockstrlen);
+        if(sock_Cli == -1)
+        {
+            cout << "call to accept" << endl;
+            usleep(1000); // 1 ms
+            cnt++;
+            continue;
+        }
+        inet_ntop(AF_INET,&addr_sensor.sin_addr,(char*)hostname,sizeof(hostname));  
+        cout << "client name is " << hostname << "port is " << addr_sensor.sin_port << endl;
+    }
+    /*End TCP Server Init*/
+
+    m_uart_exit.lock();
+    m_uartBexit = false;
+    m_uart_exit.unlock();
+
+    m_eth_exit.lock();                  /* we just init , you can use it in data prosess thread*/
+    m_EthBexit = false;
+    m_eth_exit.unlock();
+
+    m_GetUartDataThread = std::thread(&RTKDriver::ThreadGetDataUart, this);
+    m_GetEthDataThread  = std::thread(&RTKDriver::ThreadGetDataEth, this);    
 
     signal(SIGINT, SigintHandler);
     Spin();
@@ -73,9 +138,16 @@ void RTKDriver::Stop()
         SAFEDELETE(m_pserial);
     }
 
-    m_mx_exit.lock();
-    m_bexit = true;
-    m_mx_exit.unlock();
+    close(sock_Ser);        //close Eth server and client socket
+    close(sock_Cli);
+
+    m_eth_exit.lock();
+    m_EthBexit = true;
+    m_eth_exit.unlock();
+
+    m_uart_exit.lock();
+    m_uartBexit = true;
+    m_uart_exit.unlock();
     usleep(1000);
 }
 
@@ -91,8 +163,11 @@ bool RTKDriver::Spin()
     double rate_ = 200; // Hz
     ros::Rate loop_rate(rate_);
 
-    size_t max_sz = 200;
+    size_t max_sz = 256;
     uint8_t *buf = new uint8_t[max_sz];
+    //size_t max_eth = 1472;                        /****** it is better to get data here,and push into fifo *******/
+    //uint8_t *recvBuf = new uint8_t[max_sz];
+    //uint16_t  recvNum = 0;
     while (ros::ok())
     {
         /*
@@ -108,7 +183,7 @@ bool RTKDriver::Spin()
         m_mt_buf.lock();
         for (size_t i = 0; i < sz; i++)
         {
-            m_buf.push(buf[i]);
+            m_uartBuf.push(buf[i]);
         }
         m_mt_buf.unlock();
 
@@ -121,14 +196,9 @@ bool RTKDriver::Spin()
     return true;
 };
 
-void RTKDriver::ThreadGetData()
+void RTKDriver::ThreadGetDataUart()
 {
-    cout << "RTKDriver::ThreadGetData()" << endl;
-
-    const uint8_t HEADER[] = {0X55, 0X55};
-    const uint8_t PACKAGE_TYPE_IDX = 2;
-    const uint8_t PAYLOAD_LEN_IDX = 4;
-    const int MAX_FRAME_LIMIT = 256;  // assume max len of frame is smaller than MAX_FRAME_LIMIT.
+    cout << "RTKDriver::ThreadGetDataUart()" << endl;
 
     deque<uint8_t> sync_pattern (2, 0);
 	uint8_t* buf = new uint8_t[MAX_FRAME_LIMIT];
@@ -139,23 +209,23 @@ void RTKDriver::ThreadGetData()
 
     while (1)
     {
-        m_mx_exit.lock();
-        if(m_bexit) 
+        m_uart_exit.lock();
+        if(m_uartBexit) 
         {
-            m_mx_exit.unlock();
+            m_uart_exit.unlock();
             break;
         }
-        m_mx_exit.unlock();
+        m_uart_exit.unlock();
 
         m_mt_buf.lock();
-        if (m_buf.empty()) 
+        if (m_uartBuf.empty()) 
         {
             m_mt_buf.unlock();
             usleep(1000); // 1ms
             continue;
         }
-        d = m_buf.front();
-        m_buf.pop();
+        d = m_uartBuf.front();
+        m_uartBuf.pop();
         m_mt_buf.unlock();
         
         if(find_header)
@@ -174,7 +244,7 @@ void RTKDriver::ThreadGetData()
                 if (packet_crc == calcCRC(&buf[PACKAGE_TYPE_IDX], idx-3)) // 4: len of header 'UU', and len of checksum.
                 {
                     // find a whole frame
-                    ParseFrame(buf, idx+1);
+                    //ParseFrame(buf, idx+1);
                 }
                 else
                 {
@@ -204,10 +274,68 @@ void RTKDriver::ThreadGetData()
     }
 }
 
+/******here we just use socket*****/
+void RTKDriver::ThreadGetDataEth(void)
+{ 
+    uint16_t index = 0;
+    int32_t  recvNum = 0;
+    uint8_t  recvBuf[1472] = {0};
+    uint16_t packet_crc = 0;
+    uint16_t packet_len = 0;
+    uint8_t  packet_buf[MAX_FRAME_LIMIT] = {0};
+    
+    while(1)
+    {
+		recvNum = recvfrom(sock_Cli, recvBuf, sizeof(recvBuf), 0, (struct sockaddr*)&addr_sensor, &sockstrlen); 
+
+	    if(recvNum < 0)    
+	    {    
+		    cout << "recvfrom error:" <<endl;     
+            continue; 
+	    }   
+
+        if((recvBuf[0] == 0x68) && (recvBuf[1] == 0x65))        //we receive string "hello pc,i'm openrtk_data", and should send back " i am pc"
+        {                                                       //here we just check 'h' and 'e', it is easier than strcmp or others
+            sendto(sock_Cli, Handbk, sizeof(Handbk), 0, (struct sockaddr*)&addr_sensor, sockstrlen);
+            cout << "Hand Back" << endl;
+        } 
+        else
+        {
+            recvNum--;                                      //to aviod Array out of bounds
+            index = 0;
+            while(index < recvNum)
+            {
+                if((recvBuf[index] == HEADER[0]) && (recvBuf[index+1] == HEADER[1]))
+                {
+                    packet_len = recvBuf[index + 4] + 7;                            //you can refer to user meanual
+                    memcpy(packet_buf, &recvBuf[index], packet_len);                //here we use another buff, it seems more clear
+                    packet_crc = 256 * packet_buf[packet_len - 2] + packet_buf[packet_len - 1];
+
+                    if (packet_crc == calcCRC(&packet_buf[PACKAGE_TYPE_IDX], packet_len - 4)) // 4: len of header 'UU', and len of checksum.
+                    {
+                        // find a whole frame
+                        ParseFrame(packet_buf, packet_len);
+                        //cout << "packet_buf : " << Bytestohexstring(packet_buf, packet_len) << endl;
+                    }
+                    else
+                    {
+                        cout << "Buf data error! : " << Bytestohexstring(packet_buf, packet_len) << endl;
+                        cout << "please check header and CRC" << endl;
+                    }        
+                    index += packet_len;
+                }
+                else
+                {
+                    index++;                    
+                }
+            }
+        }
+		usleep(1000);
+    }
+}
+
 void RTKDriver::ParseFrame(uint8_t* frame, uint16_t len)
 {
-    const uint8_t PACKAGE_TYPE_IDX = 2;
-
     string packetType;
     packetType.push_back(frame[PACKAGE_TYPE_IDX]);
     packetType.push_back(frame[PACKAGE_TYPE_IDX + 1]);

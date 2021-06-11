@@ -1,6 +1,6 @@
 /*******************************************************
  * @file driver.h
- * @author SongYang (khshen@aceinna.com)
+ * @author khshen (khshen@aceinna.com)
  * @brief 
  * @date 2021-05-01
  * 
@@ -25,6 +25,9 @@ using namespace std;
 #include "rtk_msg/rtkmsg_imu.h"
 #include "rtk_msg/rtkmsg_gnss.h"
 #include "rtk_msg/rtkmsg_ins.h"
+#include <sys/socket.h>     
+#include <netinet/in.h>     
+#include <arpa/inet.h>  
 
 class RTKDriver
 {
@@ -37,7 +40,9 @@ public:
     bool Spin();
 
     static void SigintHandler(int sig);
-    void ThreadGetData();
+    void ThreadGetDataUart(void);
+    void ThreadGetDataEth(void);
+    //void ThreadGetDataCAN(void);
 
     void ParseFrame(uint8_t* frame, uint16_t len);
     void Handle_RtkGNSSMessage(uint8_t* frame, uint16_t len);
@@ -56,11 +61,24 @@ private:
     string m_topic;
     serial::Serial* m_pserial;
 
-    std::mutex m_mt_buf;
-    queue<uint8_t> m_buf;
+    /*******Eth Port******/
+    struct sockaddr_in addr_sensor;  
+    struct sockaddr_in addr_server; 
+    uint32_t sockstrlen;
+    int32_t sock_Cli; 
+    int32_t sock_Ser; 
+    /*******Eth Port******/
 
-    bool m_bexit;
-    std::mutex m_mx_exit;
-    std::thread m_get_data_thread;
+    std::mutex m_mt_buf;
+    queue<uint8_t> m_uartBuf;
+    queue<uint8_t> m_ethBuf;
+
+    bool m_uartBexit;
+    bool m_EthBexit;
+    std::mutex m_uart_exit;
+    std::mutex m_eth_exit;
+    std::thread m_GetUartDataThread;
+    std::thread m_GetEthDataThread;
+    std::thread m_GetCANDataThread;
 };
 

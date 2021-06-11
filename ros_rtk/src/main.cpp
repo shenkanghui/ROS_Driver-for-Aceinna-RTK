@@ -1,6 +1,6 @@
 /*******************************************************
  * @file main.cpp
- * @author SongYang (khshen@aceinna.com)
+ * @author khshen (khshen@aceinna.com)
  * @brief 
  * @date 2021-05-01
  * 
