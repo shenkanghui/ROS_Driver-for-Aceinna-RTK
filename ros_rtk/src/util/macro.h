@@ -1,8 +1,8 @@
 /*******************************************************
  * @file macro.h
- * @author SongYang (khshen@aceinna.com)
+ * @author khshen (khshen@aceinna.com)
  * @brief 
- * @date 2021-05-01
+ * @date 2021-06-10
  * 
  * @copyright Copyright (c) 2021
  * 
