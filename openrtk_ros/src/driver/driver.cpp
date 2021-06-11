@@ -119,8 +119,11 @@ void RTKDriver::Start()
     m_EthBexit = false;
     m_eth_exit.unlock();
 
+    /* UART port is enabled by default */
     m_GetUartDataThread = std::thread(&RTKDriver::ThreadGetDataUart, this);
-    m_GetEthDataThread  = std::thread(&RTKDriver::ThreadGetDataEth, this);    
+
+    /* Comment the line above, and uncomment the line below to enable Ethernet */
+    // m_GetEthDataThread  = std::thread(&RTKDriver::ThreadGetDataEth, this);    
 
     signal(SIGINT, SigintHandler);
     Spin();
