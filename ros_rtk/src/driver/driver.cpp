@@ -244,7 +244,7 @@ void RTKDriver::ThreadGetDataUart()
                 if (packet_crc == calcCRC(&buf[PACKAGE_TYPE_IDX], idx-3)) // 4: len of header 'UU', and len of checksum.
                 {
                     // find a whole frame
-                    //ParseFrame(buf, idx+1);
+                    ParseFrame(buf, idx+1);
                 }
                 else
                 {
