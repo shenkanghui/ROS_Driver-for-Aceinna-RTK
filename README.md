@@ -61,7 +61,7 @@ When you choose the Ethernet output method, you need to complete the following t
 
 3. Message echo (xxx = imu, ins, gnss)
 
-   ​	`rostopic echo /rtk/topic_rtk_xxx`
+   ​	`rostopic echo /openrtk/topic_rtk_xxx`
 
    ​	                
 
