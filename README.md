@@ -15,7 +15,7 @@ The `master` branch for this driver functions on ROS Melodic, if you don't know 
      rtk_msg contants three msgs, rtkmsg_gnss、rtkmsg_imu、rtkmsg_ins, each supports log Aceinna-RTK GNSS/IMU/INS message.   
      These three msgs are composed of ros std_msg header and specific rtk message content. You can use cmd "rosmsg show" to see the detial of each rtk_msg.   
 -----'ros_rtk'   
-     ros_rtk is the ros driver for Aceinna-RTK, it will process GNSS/IMU/INS message received form Aceinna-RTK by serial.   
+     ros_rtk is the ros driver for Aceinna-RTK, it will process GNSS/IMU/INS message received form Aceinna-RTK by serial or eth and      
      log the message to ROS by Rostopic.   
 
 ---How to use
