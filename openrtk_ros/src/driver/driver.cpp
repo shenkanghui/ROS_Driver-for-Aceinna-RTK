@@ -25,6 +25,7 @@ const float r2d = 180/3.14159265;
 #define     PACKAGE_TYPE_IDX        2
 #define     PAYLOAD_LEN_IDX         4
 #define     MAX_FRAME_LIMIT         256  // assume max len of frame is smaller than MAX_FRAME_LIMIT.
+#define     OPENRTK_GET_HOSTIP      "python3 ~/catkin_ws/src/openrtk_ros/netbios.py"
 
 const uint8_t HEADER[2] = {0X55, 0X55};
 const uint8_t HandStr[] = {"hello pc i'm openrtk_data"};
@@ -109,6 +110,7 @@ void RTKDriver::Start()
         inet_ntop(AF_INET,&addr_sensor.sin_addr,(char*)hostname,sizeof(hostname));  
         cout << "client name is " << hostname << "port is " << addr_sensor.sin_port << endl;
     }
+    //system(OPENRTK_GET_HOSTIP);
     /*End TCP Server Init*/
 
     m_uart_exit.lock();
