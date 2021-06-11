@@ -286,13 +286,13 @@ void RTKDriver::ThreadGetDataEth(void)
     
     while(1)
     {
-		recvNum = recvfrom(sock_Cli, recvBuf, sizeof(recvBuf), 0, (struct sockaddr*)&addr_sensor, &sockstrlen); 
+	recvNum = recvfrom(sock_Cli, recvBuf, sizeof(recvBuf), 0, (struct sockaddr*)&addr_sensor, &sockstrlen); 
 
-	    if(recvNum < 0)    
-	    {    
-		    cout << "recvfrom error:" <<endl;     
+	if(recvNum < 0)    
+	{    
+	    cout << "recvfrom error:" <<endl;     
             continue; 
-	    }   
+	}   
 
         if((recvBuf[0] == 0x68) && (recvBuf[1] == 0x65))        //we receive string "hello pc,i'm openrtk_data", and should send back " i am pc"
         {                                                       //here we just check 'h' and 'e', it is easier than strcmp or others
