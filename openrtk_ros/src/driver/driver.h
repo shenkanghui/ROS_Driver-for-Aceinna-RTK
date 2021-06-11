@@ -22,9 +22,9 @@ using namespace std;
 #include "rtk.h"
 #include "macro.h"
 #include "protocol.h"
-#include "rtk_msg/rtkmsg_imu.h"
-#include "rtk_msg/rtkmsg_gnss.h"
-#include "rtk_msg/rtkmsg_ins.h"
+#include "openrtk_msg/openrtk_imu.h"
+#include "openrtk_msg/openrtk_gnss.h"
+#include "openrtk_msg/openrtk_ins.h"
 #include <sys/socket.h>     
 #include <netinet/in.h>     
 #include <arpa/inet.h>  

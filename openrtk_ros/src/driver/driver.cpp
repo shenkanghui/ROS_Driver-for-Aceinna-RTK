@@ -53,9 +53,9 @@ RTKDriver::RTKDriver(ros::NodeHandle nh)
     ROS_INFO("device: %s", m_rtk.m_port.c_str());
     ROS_INFO("baud: %d", m_rtk.m_baud);
 
-    rtk_pub_imu  = m_nh.advertise<rtk_msg::rtkmsg_imu>("topic_rtk_imu", 100);
-    rtk_pub_gnss = m_nh.advertise<rtk_msg::rtkmsg_gnss>("topic_rtk_gnss", 100);
-    rtk_pub_ins  = m_nh.advertise<rtk_msg::rtkmsg_ins>("topic_rtk_ins", 100);
+    rtk_pub_imu  = m_nh.advertise<openrtk_msg::openrtk_imu>("topic_rtk_imu", 100);
+    rtk_pub_gnss = m_nh.advertise<openrtk_msg::openrtk_gnss>("topic_rtk_gnss", 100);
+    rtk_pub_ins  = m_nh.advertise<openrtk_msg::openrtk_ins>("topic_rtk_ins", 100);
 }
 
 RTKDriver::~RTKDriver()
@@ -422,7 +422,7 @@ void RTKDriver::Handle_RtkIMUMessage(uint8_t* frame, uint16_t len)
     }
 
     stRTKIMUS1 *S1Msg = (stRTKIMUS1*)(&frame[5]);
-    rtk_msg::rtkmsg_imu imu_data;
+    openrtk_msg::openrtk_imu imu_data;
 
     imu_data.header.frame_id = "RTK_IMU";
     imu_data.header.stamp = ros::Time::now();
@@ -452,7 +452,7 @@ void RTKDriver::Handle_RtkINSMessage(uint8_t* frame, uint16_t len)
     }
 
     stRTKINSI1 *I1Msg = (stRTKINSI1*)(&frame[5]);
-    rtk_msg::rtkmsg_ins ins_data;
+    openrtk_msg::openrtk_ins ins_data;
 
     ins_data.header.frame_id = "RTK_INS";
     ins_data.header.stamp = ros::Time::now();
@@ -496,7 +496,7 @@ void RTKDriver::Handle_RtkGNSSMessage(uint8_t* frame, uint16_t len)
     }
 
     stRTKGNSSG1 *G1Msg = (stRTKGNSSG1*)(&frame[5]);
-    rtk_msg::rtkmsg_gnss gnss_data;
+    openrtk_msg::openrtk_gnss gnss_data;
 
     gnss_data.header.frame_id = "RTK_GNSS";
     gnss_data.header.stamp = ros::Time::now();
