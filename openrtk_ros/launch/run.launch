@@ -4,14 +4,14 @@
 
     <!-- Load urdf -->
     <param if="$(arg brviz)" 
-    name="robot_description" textfile="$(find ros_rtk)/urdf/rtk.urdf"/>
+    name="robot_description" textfile="$(find openrtk_ros)/urdf/rtk.urdf"/>
 
     <!-- Start rviz -->
     <node if="$(arg brviz)" 
-    pkg="rviz" type="rviz" name="rviz" args="-d $(find ros_rtk)/config/config.rviz" />
+    pkg="rviz" type="rviz" name="rviz" args="-d $(find openrtk_ros)/config/config.rviz" />
 
     <!-- Start driver -->
-    <node name="rtk" pkg="ros_rtk" type="driver" output="screen" >
+    <node name="openrtk" pkg="openrtk_ros" type="driver" output="screen" >
       <param name="device" value="/dev/ttyUSB0" type="str"/>
       <param name="baud" value="460800" type="int"/>
     </node>

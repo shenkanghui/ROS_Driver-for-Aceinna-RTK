@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(ros_rtk)
+project(openrtk_ros)
 
 ############ Choose Release or Debug ##############
 set(COMPILE_TYPE Release)
@@ -41,7 +41,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   sensor_msgs
-  rtk_msg
+  openrtk_msg
   std_msgs
   tf
 )

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(rtk_msg)
+project(openrtk_msg)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -45,9 +45,9 @@ find_package(catkin REQUIRED COMPONENTS message_generation roscpp std_msgs)
 ## Generate messages in the 'msg' folder
  add_message_files(
    FILES
-   rtkmsg_imu.msg
-   rtkmsg_gnss.msg
-   rtkmsg_ins.msg
+   openrtk_imu.msg
+   openrtk_gnss.msg
+   openrtk_ins.msg
  )
 
 ## Generate services in the 'srv' folder
